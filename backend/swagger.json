@@ -6,7 +6,7 @@
     "description": "API documentation for the Urgent Medicine Reminder backend."
   },
   "servers": [
-    { "url": "http://localhost:5000/api" }
+    { "url": "https://medreminder.onrender.com/api" }
   ],
   "components": {
     "securitySchemes": {

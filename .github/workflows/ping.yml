@@ -10,4 +10,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping the Render App
-        run: curl -s http://localhost:5000/api/health
+        run: curl -s https://medreminder.onrender.com/api/health

@@ -16,7 +16,6 @@ const path = require('path');
 
 const app = express();
 
-// Middleware
 app.use(cors({
   origin: process.env.CLIENT_ORIGIN || 'http://localhost:3000',
   credentials: true,
@@ -24,19 +23,16 @@ app.use(cors({
 
 app.use(express.json());
 
-// Connect to MongoDB
 connectDB();
 
 const swaggerDocument = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'swagger.json'), 'utf8')
 );
 
-// Serve Swagger UI at /api-docs
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 
 
-// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/medications', medicationRoutes);
 app.use('/api/logs', logRoutes);
@@ -47,7 +43,6 @@ app.get('/api/ping', (req, res) => {
 });
 
 
-// Error handler
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
