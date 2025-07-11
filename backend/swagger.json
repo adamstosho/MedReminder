@@ -1,0 +1,335 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Urgent Medicine Reminder API",
+    "version": "1.0.0",
+    "description": "API documentation for the Urgent Medicine Reminder backend."
+  },
+  "servers": [
+    { "url": "http://localhost:5000/api" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "example": "60f7c0b8e1b1c8a1b8e1b1c8" },
+          "name": { "type": "string", "example": "Alice" },
+          "email": { "type": "string", "example": "alice@example.com" },
+          "settings": { "type": "object", "example": { "theme": "dark" } }
+        }
+      },
+      "Medication": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "example": "60f7c0b8e1b1c8a1b8e1b1c9" },
+          "userId": { "type": "string", "example": "60f7c0b8e1b1c8a1b8e1b1c8" },
+          "name": { "type": "string", "example": "Paracetamol" },
+          "dosage": { "type": "string", "example": "500mg" },
+          "times": { "type": "array", "items": { "type": "string", "example": "08:00" } },
+          "remindersEnabled": { "type": "boolean", "example": true }
+        }
+      },
+      "Log": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "example": "60f7c0b8e1b1c8a1b8e1b1ca" },
+          "medicationId": { "type": "string", "example": "60f7c0b8e1b1c8a1b8e1b1c9" },
+          "userId": { "type": "string", "example": "60f7c0b8e1b1c8a1b8e1b1c8" },
+          "timestamp": { "type": "string", "format": "date-time", "example": "2024-06-01T08:00:00.000Z" },
+          "action": { "type": "string", "enum": ["taken", "missed", "snoozed"], "example": "taken" }
+        }
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["name", "email", "password"],
+        "properties": {
+          "name": { "type": "string", "example": "Alice" },
+          "email": { "type": "string", "example": "alice@example.com" },
+          "password": { "type": "string", "example": "password123" }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "example": "alice@example.com" },
+          "password": { "type": "string", "example": "password123" }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string", "example": "JWT_TOKEN" },
+          "user": { "$ref": "#/components/schemas/User" }
+        }
+      },
+      "MedicationRequest": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "example": "60f7c0b8e1b1c8a1b8e1b1c9" },
+          "name": { "type": "string", "example": "Paracetamol" },
+          "dosage": { "type": "string", "example": "500mg" },
+          "times": { "type": "array", "items": { "type": "string", "example": "08:00" } },
+          "remindersEnabled": { "type": "boolean", "example": true }
+        }
+      },
+      "LogSyncRequest": {
+        "type": "object",
+        "properties": {
+          "logs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "medicationId": { "type": "string", "example": "60f7c0b8e1b1c8a1b8e1b1c9" },
+                "timestamp": { "type": "string", "format": "date-time", "example": "2024-06-01T08:00:00.000Z" },
+                "action": { "type": "string", "enum": ["taken", "missed", "snoozed"], "example": "taken" }
+              }
+            }
+          }
+        }
+      },
+      "ExportResponse": {
+        "type": "object",
+        "properties": {
+          "medications": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Medication" }
+          },
+          "logs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Log" }
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string", "example": "Error description" }
+        }
+      }
+    }
+  },
+  "security": [ { "bearerAuth": [] } ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Register a new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "User registered successfully" },
+          "400": {
+            "description": "User already exists or invalid input",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          }
+        },
+        "security": []
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login and receive JWT",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LoginResponse" } } }
+          },
+          "400": {
+            "description": "Invalid credentials or input",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          }
+        },
+        "security": []
+      }
+    },
+    "/auth/delete": {
+      "delete": {
+        "tags": ["Auth"],
+        "summary": "Delete the authenticated user's account and all associated data",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Account deleted successfully",
+            "content": { "application/json": { "schema": { "type": "object", "properties": { "message": { "type": "string", "example": "Account and all associated data deleted successfully." } } } } }
+          },
+          "401": { "description": "Unauthorized", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "500": { "description": "Server error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/medications": {
+      "get": {
+        "tags": ["Medications"],
+        "summary": "Get all medications for the logged-in user",
+        "responses": {
+          "200": {
+            "description": "List of medications",
+            "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Medication" } } } }
+          },
+          "401": { "description": "Unauthorized", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "post": {
+        "tags": ["Medications"],
+        "summary": "Create a new medication",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "dosage", "times"],
+                "properties": {
+                  "name": { "type": "string", "example": "Paracetamol" },
+                  "dosage": { "type": "string", "example": "500mg" },
+                  "times": { "type": "array", "items": { "type": "string", "example": "08:00" } },
+                  "remindersEnabled": { "type": "boolean", "example": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Medication created",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Medication" } } }
+          },
+          "401": { "description": "Unauthorized", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "400": { "description": "Invalid input", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/medications/{id}": {
+      "put": {
+        "tags": ["Medications"],
+        "summary": "Update a medication by ID",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "example": "Paracetamol" },
+                  "dosage": { "type": "string", "example": "500mg" },
+                  "times": { "type": "array", "items": { "type": "string", "example": "08:00" } },
+                  "remindersEnabled": { "type": "boolean", "example": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Medication updated",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Medication" } } }
+          },
+          "401": { "description": "Unauthorized", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "404": { "description": "Not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "400": { "description": "Invalid input", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "delete": {
+        "tags": ["Medications"],
+        "summary": "Delete a medication by ID",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Medication deleted", "content": { "application/json": { "schema": { "type": "object", "properties": { "message": { "type": "string", "example": "Medication deleted" } } } } } },
+          "401": { "description": "Unauthorized", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "404": { "description": "Not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/logs": {
+      "get": {
+        "tags": ["Logs"],
+        "summary": "Get all logs for the logged-in user",
+        "responses": {
+          "200": {
+            "description": "List of logs",
+            "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Log" } } } }
+          },
+          "401": { "description": "Unauthorized", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "delete": {
+        "tags": ["Logs"],
+        "summary": "Clear all logs for the authenticated user",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "All logs cleared successfully",
+            "content": { "application/json": { "schema": { "type": "object", "properties": { "message": { "type": "string", "example": "All logs cleared successfully." } } } } }
+          },
+          "401": { "description": "Unauthorized", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "500": { "description": "Server error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/logs/sync": {
+      "post": {
+        "tags": ["Logs"],
+        "summary": "Sync logs from the frontend",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LogSyncRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Logs created",
+            "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Log" } } } }
+          },
+          "400": { "description": "Invalid input", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "401": { "description": "Unauthorized", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/export": {
+      "get": {
+        "tags": ["Export"],
+        "summary": "Export all medications and logs for the current user as JSON",
+        "responses": {
+          "200": {
+            "description": "Exported data",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ExportResponse" } } }
+          },
+          "401": { "description": "Unauthorized", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    }
+  }
+} 
