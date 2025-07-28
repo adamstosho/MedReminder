@@ -10,4 +10,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping the Render App
-        run: curl -s https://medreminder.onrender.com/api/ping
+        run: curl -s https://polling-app-gleq.onrender.com/api/ping

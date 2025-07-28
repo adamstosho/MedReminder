@@ -29,6 +29,11 @@ const swaggerDocument = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'swagger.json'), 'utf8')
 );
 
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "Welcome to the API" });
+});
+
+
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 
