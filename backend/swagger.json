@@ -6,7 +6,7 @@
     "description": "API documentation for the Urgent Medicine Reminder backend."
   },
   "servers": [
-    { "url": "https://medreminder.onrender.com/api" }
+    { "url": "https://med-reminder-71jy.vercel.app/api" }
   ],
   "components": {
     "securitySchemes": {
